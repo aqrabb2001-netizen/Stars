@@ -1,0 +1,26 @@
+<!-- في قسم الـ NAV، أضف زر الخريطة -->
+<button class="nav-btn" onclick="showPage('map')">
+  <span class="ico">🗺️</span>خريطة
+</button>
+
+<!-- صفحة الخريطة الجديدة -->
+<div class="page" id="page-map">
+  <div class="card">
+    <div class="card-title">🗺️ خريطة النجوم</div>
+    <div style="display:flex; gap:8px; margin-bottom:10px">
+      <select id="mapStarSet" class="map-select" onchange="updateMap()">
+        <option value="first20">أول 20 نجم (الصفوف 4–23)</option>
+        <option value="last4">آخر 4 نجوم (الصفوف 251–254)</option>
+        <option value="first20+last4">المجموعتان معاً</option>
+        <option value="all">كل النجوم (قد يكون مزدحماً)</option>
+      </select>
+      <button class="btn" style="width:auto; padding:8px 15px;" onclick="updateMap()">تحديث</button>
+    </div>
+    <canvas id="starMap" width="600" height="400" style="width:100%; height:auto; background:#0a0f1a; border-radius:12px; border:2px solid var(--border2);"></canvas>
+    <div style="font-size:11px; color:var(--text2); margin-top:8px; display:flex; justify-content:space-between">
+      <span>🟡 نجمة عادية</span>
+      <span>🔵 نجمة ثابتة</span>
+      <span>🟠 النجم المرجعي (A أو المعروف)</span>
+    </div>
+  </div>
+</div>

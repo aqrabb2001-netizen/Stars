@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>المحلل الجنائي البصري</title>
+    <style>
+        /* إعدادات الألوان والمظهر العام */
+        :root { --neon: #00ffcc; --dark: #0a0a0a; --panel: #1a1a1a; }
+        
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            background: var(--dark); color: white; 
+            font-family: sans-serif; overflow: hidden; 
+        }
+
+        /* حاوية التطبيق الرئيسية */
+        .app-container {
+            display: flex; flex-direction: column; height: 100vh; width: 100vw;
+        }
+
+        /* الرأس (Title Bar) */
+        .app-header {
+            height: 50px; background: var(--panel); 
+            display: flex; align-items: center; justify-content: center;
+            border-bottom: 2px solid var(--neon); box-shadow: 0 0 10px rgba(0,255,204,0.3);
+            flex-shrink: 0;
+        }
+        .app-header h1 { font-size: 16px; color: var(--neon); margin: 0; letter-spacing: 1px; }
+
+        /* منطقة عرض الصورة (Viewport) */
+        .viewer {
+            flex-grow: 1; position: relative; background: #000;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; padding: 10px;
+        }
+        canvas { 
+            max-width: 100%; max-height: 100%; 
+            object-fit: contain; border: 1px solid #333;
+        }
+
+        /* لوحة التحكم (Control Panel) */
+        .controls {
+            background: var(--panel); border-top: 2px solid var(--neon);
+            padding: 15px; flex-shrink: 0; border-radius: 20px 20px 0 0;
+        }
+
+        /* شبكة الأزرار */
+        .btn-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 15px;
+        }
+        .btn {
+            background: #222; border: 1px solid #444; color: #fff;
+            padding: 10px 2px; border-radius: 6px; font-size: 11px;
+            cursor: pointer; transition: 0.2s; text-align: center;
+        }
+        .btn:active { background: var(--neon); color: #000; }
+        .btn-upload { border-color: var(--neon); color: var(--neon); font-weight: bold; }
+
+        /* أشرطة التحكم */
+        .sliders-container { display: flex; flex-direction: column; gap: 10px; }
+        .slider-row { display: flex; align-items: center; gap: 10px; }
+        .slider-row label { font-size: 10px; min-width: 50px; color: var(--neon); }
+        input[type=range] { flex-grow: 1; accent-color: var(--neon); height: 20px; }
+
+        /* نصوص توضيحية */
+        #status-bar { 
+            position: absolute; top: 10px; right: 10px; 
+            font-size: 10px; background: rgba(0,0,0,0.6); 
+            padding: 2px 8px; border-radius: 4px; color: var(--neon);
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="app-header">
+        <h1>◈ FORENSIC VISUAL ANALYZER ◈</h1>
+    </div>
+
+    <div class="viewer">
+        <div id="status-bar">انتظار البيانات...</div>
+        <canvas id="mainCanvas"></canvas>
+    </div>
+
+    <div class="controls">
+        <div class="btn-grid">
+            <button class="btn btn-upload" onclick="openFile()">📁 جلب صورة</button>
+            <button class="btn" onclick="applyEffect('reset')">🔄 الأصل</button>
+            <button class="btn" onclick="saveImage()">💾 حفظ</button>
+            
+            <button class="btn" onclick="applyEffect('negative')">◐ عكس</button>
+            <button class="btn" onclick="applyEffect('edges')">⚡ حواف</button>
+            <button class="btn" onclick="applyEffect('thermal')">🔥 حراري</button>
+        </div>
+
+        <div class="sliders-container">
+            <div class="slider-row">
+                <label>إضاءة</label>
+                <input type="range" id="bright" min="0" max="200" value="100" oninput="processImage()">
+            </div>
+            <div class="slider-row">
+                <label>تباين</label>
+                <input type="range" id="contrast" min="0" max="200" value="100" oninput="processImage()">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- مدخل الملفات المخفي -->
+<input type="file" id="fileInput" style="display:none" accept="image/*">
+
+<script>
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const fileInput = document.getElementById('fileInput');
+    const statusBar = document.getElementById('status-bar');
+    
+    let originalImg = null;
+    let currentMode = 'reset';
+
+    function openFile() { fileInput.click(); }
+
+    fileInput.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        statusBar.innerText = "جاري التحل
